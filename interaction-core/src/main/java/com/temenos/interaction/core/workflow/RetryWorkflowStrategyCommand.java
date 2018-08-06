@@ -24,13 +24,13 @@ package com.temenos.interaction.core.workflow;
 
 import javax.ws.rs.core.Response.Status.Family;
 
-import com.temenos.interaction.core.command.TransitionCommand;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.temenos.interaction.core.command.InteractionCommand;
 import com.temenos.interaction.core.command.InteractionContext;
 import com.temenos.interaction.core.command.InteractionException;
+import com.temenos.interaction.core.command.TransitionCommand;
 
 /**
  * <p>This command implements a workflow that will retry if there is an error.</p>
@@ -74,8 +74,8 @@ public class RetryWorkflowStrategyCommand implements WorkflowCommand {
 				result = command.execute(ctx);
 				break;
 			} catch (InteractionException ex) {
-				if (Family.SERVER_ERROR.equals(ex.getHttpStatus().getFamily()) && retryCount < maxRetryCount ) {
-					long nextRetry = maxRetryInterval * (int)Math.pow(2,retryCount);
+			      if (Family.SERVER_ERROR.equals(ex.getHttpStatus().getFamily()) && retryCount < maxRetryCount && ex.getHttpStatus().getStatusCode() != 503 ) {
+			         long nextRetry = maxRetryInterval * (int)Math.pow(2,retryCount);
 						logger.info("iris_request maxRetryCount=" + String.valueOf(maxRetryCount) +
 								" maxRetryInterval=" + String.valueOf(maxRetryInterval) +
 								" retryingNumber=" + String.valueOf(retryCount) +
@@ -85,6 +85,7 @@ public class RetryWorkflowStrategyCommand implements WorkflowCommand {
 					} catch (InterruptedException e) {
 						logger.error("InterruptedException: ", e);
 					}
+		             
 				} else { throw ex; }
 			}
 		}
